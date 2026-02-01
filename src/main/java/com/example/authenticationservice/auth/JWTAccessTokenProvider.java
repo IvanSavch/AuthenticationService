@@ -5,6 +5,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,22 +15,23 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 @Component
-public class JWTTokenProvider {
+public class JWTAccessTokenProvider {
 
-    private String jwtSecret= "this-is-a-very-long-secret-key-at-least-32-bytes!!";
+    @Value("${jwt.token.secret}")
+    private String jwtSecret;
+    @Value("${jwt.token.expired}")
+    private long jwtExpirationInMs;
 
-
-    private long jwtExpirationInMs = 36000;
-
-    private final SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-
-    public String generateToken(Long id, String login,String password, User.Role role) {
+    private SecretKey key;
+    @PostConstruct
+    public void init() {
+        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
+    public String generateToken(Long id, String login, User.Role role) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + jwtExpirationInMs);
         return  Jwts.builder()
@@ -37,19 +39,16 @@ public class JWTTokenProvider {
                 .issuedAt(now)
                 .expiration(validity)
                 .claim("id", id)
-                .claim("password", password)
-                .claim("role", role)
+                .claim("role", role.name())
                 .signWith(key, Jwts.SIG.HS256)
                 .compact();
-
     }
 
     public Authentication getAuthentication(String token) {
         User userDetails = new User();
         userDetails.setId(getUserIdFromJWT(token));
-        userDetails.setPassword(getUserPasswordFromJWT(token));
         userDetails.setRole(getUserRolesFromJWT(token));
-        return new UsernamePasswordAuthenticationToken(userDetails, token);
+        return new UsernamePasswordAuthenticationToken(userDetails, token, List.of(userDetails.getRole()));
     }
 
     public String resolveToken(HttpServletRequest req) {
@@ -73,15 +72,6 @@ public class JWTTokenProvider {
         }
     }
 
-    public String getUserLoginFromJWT(String token) {
-        return Jwts.parser().
-                verifyWith(key).
-                build().
-                parseSignedClaims(token).
-                getPayload().
-                get("login", String.class);
-    }
-
     public Long getUserIdFromJWT(String token) {
         return Jwts.parser().
                 verifyWith(key).
@@ -91,31 +81,14 @@ public class JWTTokenProvider {
                 get("id", Long.class);
     }
 
-    public String getUserPasswordFromJWT(String token) {
-        return  Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .get("password", String.class);
-    }
-
     public User.Role getUserRolesFromJWT(String token) {
-        return Jwts.parser()
+        String role = Jwts.parser()
                 .verifyWith(key)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
-                .get("roles",User.Role.class);
+                .get("role",String.class);
+        return User.Role.valueOf(role);
     }
 
-//    private String getUserRoleNamesFromJWT(User.Role role) {
-//        return role.name();
-//    }
-//
-//    private User.Role getUserRoleNamesFromJWT(List<String> roles) {
-//        Set<User.Role> result = new HashSet<>();
-//        roles.forEach(s -> result.add(User.Role.valueOf(s)));
-//        return result;
-//    }
 }

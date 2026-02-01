@@ -4,36 +4,29 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.security.core.GrantedAuthority;
 
+import java.time.LocalDate;
 
 @Entity
-@Table(name = "users_creds")
-@Setter
-@Getter
+@Table(name = "refresh_token")
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+@Setter
+@Getter
+public class RefreshToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String token;
+    private LocalDate expirationDate;
 
-    private String login;
-    private String password;
-    private Role role;
+    @OneToOne
+    private User user;
 
-    public enum Role implements GrantedAuthority {
-        ROLE_USER, ROLE_ADMIN;
-
-        @Override
-        public String getAuthority() {
-            return this.name();
-        }
-    }
 }
-
