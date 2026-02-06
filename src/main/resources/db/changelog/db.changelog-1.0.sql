@@ -22,7 +22,7 @@ create table refresh_token
     expiration_date date                  not null,
     created_at      timestamp,
     updated_at      timestamp,
-    foreign key (user_id) references users_credentials on DELETE cascade
+    foreign key (user_id) references users_credentials(id) on DELETE cascade
 );
 
 
