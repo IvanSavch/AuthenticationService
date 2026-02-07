@@ -1,4 +1,4 @@
-package com.innowise.authenticationservice.service;
+package com.innowise.authenticationservice.service.impl;
 
 import com.innowise.authenticationservice.jwt.JWTAccessTokenProvider;
 import com.innowise.authenticationservice.jwt.JWTRefreshTokenProvider;
@@ -6,15 +6,16 @@ import com.innowise.authenticationservice.exception.InvalidTokenException;
 import com.innowise.authenticationservice.mapper.TokenMapper;
 import com.innowise.authenticationservice.model.dto.CreateTokenDto;
 import com.innowise.authenticationservice.model.dto.TokenResponse;
-import com.innowise.authenticationservice.model.dto.ValidationTokenRequest;
-import com.innowise.authenticationservice.model.dto.ValidationTokenResponse;
 import com.innowise.authenticationservice.model.entity.RefreshToken;
 import com.innowise.authenticationservice.model.entity.User;
 import com.innowise.authenticationservice.repository.RefreshTokenRepository;
+import com.innowise.authenticationservice.service.RefreshTokenService;
+import com.innowise.authenticationservice.service.UserService;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 
 @Service
@@ -69,14 +70,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         return new TokenResponse(newAccess, newRefreshToken);
     }
 
+    @Scheduled(cron = "0 0 0 * * ?")
     @Override
-    public ValidationTokenResponse validationToken(ValidationTokenRequest validationTokenRequest) {
-        if (!jwtRefreshTokenProvider.validateToken(validationTokenRequest.getToken())) {
-            throw new InvalidTokenException();
-        }
-        LocalDate dateExpirationFromRefresh = jwtRefreshTokenProvider.getDateExpirationFromRefresh(validationTokenRequest.getToken());
-        Long userIdFromRefresh = jwtRefreshTokenProvider.getUserIdFromRefresh(validationTokenRequest.getToken());
-
-        return new ValidationTokenResponse(dateExpirationFromRefresh, userIdFromRefresh);
+    public void deleteExpiredTokens() {
+        refreshTokenRepository.deleteByExpiryDateBefore(LocalDateTime.now());
     }
 }

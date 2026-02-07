@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
@@ -38,22 +39,14 @@ public class JWTRefreshTokenProvider {
                 .signWith(refreshKey, Jwts.SIG.HS256)
                 .compact();
     }
-    public Long getUserIdFromRefresh(String token) {
-        return Jwts.parser()
-                .verifyWith(refreshKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .get("id", Long.class);
-    }
-    public LocalDate getDateExpirationFromRefresh(String token){
+    public LocalDateTime getDateExpirationFromRefresh(String token){
         Date expiration = Jwts.parser().
                 verifyWith(refreshKey).
                 build().
                 parseSignedClaims(token).
                 getPayload().
                 getExpiration();
-        return LocalDate.ofInstant(expiration.toInstant(), ZoneId.systemDefault());
+        return LocalDateTime.ofInstant(expiration.toInstant(), ZoneId.systemDefault());
 
     }
     public boolean validateToken(String token) {

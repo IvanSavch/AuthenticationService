@@ -11,7 +11,7 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDto {
+public class UserCreateDto {
     @NotBlank(message = "Login can't be empty")
     private String login;
     @NotBlank(message = "Password can't be empty")

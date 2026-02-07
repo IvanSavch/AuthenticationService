@@ -1,14 +1,16 @@
 package com.innowise.authenticationservice.controller;
 
+import com.innowise.authenticationservice.exception.InvalidTokenException;
 import com.innowise.authenticationservice.jwt.JWTAccessTokenProvider;
 import com.innowise.authenticationservice.jwt.JWTRefreshTokenProvider;
 import com.innowise.authenticationservice.exception.InvalidCredentialsException;
+import com.innowise.authenticationservice.mapper.UserMapper;
 import com.innowise.authenticationservice.model.dto.CreateTokenDto;
 import com.innowise.authenticationservice.model.dto.RefreshTokenDto;
 import com.innowise.authenticationservice.model.dto.TokenResponse;
-import com.innowise.authenticationservice.model.dto.UserDto;
-import com.innowise.authenticationservice.model.dto.ValidationTokenRequest;
-import com.innowise.authenticationservice.model.dto.ValidationTokenResponse;
+import com.innowise.authenticationservice.model.dto.UserCreateDto;
+import com.innowise.authenticationservice.model.dto.UserResponse;
+import com.innowise.authenticationservice.model.dto.ValidationAccessTokenRequest;
 import com.innowise.authenticationservice.model.entity.User;
 import com.innowise.authenticationservice.service.RefreshTokenService;
 import com.innowise.authenticationservice.service.UserService;
@@ -27,24 +29,27 @@ public class AuthenticationController {
     private final JWTAccessTokenProvider jwtAccessTokenProvider;
     private final JWTRefreshTokenProvider jwtRefreshTokenProvider;
     private final RefreshTokenService refreshTokenService;
+    private final UserMapper userMapper;
 
-    public AuthenticationController(UserService userService, JWTAccessTokenProvider jwtAccessTokenProvider, JWTRefreshTokenProvider jwtRefreshTokenProvider, RefreshTokenService refreshTokenService) {
+    public AuthenticationController(UserService userService, JWTAccessTokenProvider jwtAccessTokenProvider, JWTRefreshTokenProvider jwtRefreshTokenProvider, RefreshTokenService refreshTokenService, UserMapper userMapper) {
         this.userService = userService;
         this.jwtAccessTokenProvider = jwtAccessTokenProvider;
         this.jwtRefreshTokenProvider = jwtRefreshTokenProvider;
         this.refreshTokenService = refreshTokenService;
+        this.userMapper = userMapper;
     }
 
     @PostMapping
-    public ResponseEntity<User> registration(@Valid @RequestBody UserDto userDto) {
-        User save = userService.save(userDto);
-        return ResponseEntity.ok(save);
+    public ResponseEntity<UserResponse> registration(@Valid @RequestBody UserCreateDto userCreateDto) {
+        User save = userService.save(userCreateDto);
+        UserResponse userResponse = userMapper.toUserResponse(save);
+        return ResponseEntity.ok(userResponse);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@Valid @RequestBody UserDto userDto) {
-        User byLogin = userService.findByLogin(userDto.getLogin());
-        if (!userService.passwordEncoder().matches(userDto.getPassword(), byLogin.getPassword())) {
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody UserCreateDto userCreateDto) {
+        User byLogin = userService.findByLogin(userCreateDto.getLogin());
+        if (!userService.passwordEncoder().matches(userCreateDto.getPassword(), byLogin.getPassword().substring(10))) {
             throw new InvalidCredentialsException();
         }
 
@@ -66,7 +71,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("/validate")
-    public ResponseEntity<ValidationTokenResponse> validate(ValidationTokenRequest validationTokenRequest) {
-        return ResponseEntity.ok(refreshTokenService.validationToken(validationTokenRequest));
+    public ResponseEntity<UserResponse> validate(@RequestBody ValidationAccessTokenRequest validationAccessTokenRequest) {
+        if (!jwtAccessTokenProvider.validateToken(validationAccessTokenRequest.getToken())) {
+            throw new InvalidTokenException();
+        }
+        Long userIdFromJWT = jwtAccessTokenProvider.getUserIdFromJWT(validationAccessTokenRequest.getToken());
+        User byId = userService.findById(userIdFromJWT);
+        return ResponseEntity.ok().body(userMapper.toUserResponse(byId));
     }
 }

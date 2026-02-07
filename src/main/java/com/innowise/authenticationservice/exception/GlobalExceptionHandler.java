@@ -19,8 +19,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleInvalidTokenException(InvalidTokenException invalidTokenException) {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setTitle(invalidTokenException.getMessage());
-        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-        return ResponseEntity.badRequest().body(errorResponse);
+        errorResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUserNotFoundException(UserNotFoundException userNotFoundException) {
@@ -33,8 +33,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleInvalidCredentialsException(InvalidCredentialsException invalidCredentialsException) {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setTitle(invalidCredentialsException.getMessage());
-        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-        return ResponseEntity.badRequest().body(errorResponse);
+        errorResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String,String>> handleValidation(MethodArgumentNotValidException m){

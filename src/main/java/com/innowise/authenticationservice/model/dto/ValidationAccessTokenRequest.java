@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ValidationTokenRequest {
+public class ValidationAccessTokenRequest {
     private String token;
 }

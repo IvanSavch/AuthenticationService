@@ -12,7 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "refresh_token")
@@ -25,7 +25,7 @@ public class RefreshToken extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String token;
-    private LocalDate expirationDate;
+    private LocalDateTime expirationDate;
 
     @OneToOne
     @JoinColumn(name = "user_id")

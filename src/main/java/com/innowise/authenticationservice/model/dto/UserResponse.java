@@ -4,12 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ValidationTokenResponse {
-    private LocalDate expirationDate;
-    private Long userId;
-}
+public class UserResponse {
+    private long id;
+    private String login;
+    private String role;
 
+}
