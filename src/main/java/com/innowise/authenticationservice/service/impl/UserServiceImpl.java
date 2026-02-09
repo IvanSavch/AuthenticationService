@@ -9,7 +9,6 @@ import com.innowise.authenticationservice.model.entity.User;
 import com.innowise.authenticationservice.repository.UserRepository;
 import com.innowise.authenticationservice.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,11 +20,13 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -35,7 +36,7 @@ public class UserServiceImpl implements UserService {
         }
         User user = userMapper.toUser(userCreateDto);
         user.setRole(User.Role.ROLE_USER);
-        String passwordEncodeWithSalt = addSalt(passwordEncoder().encode(user.getPassword()));
+        String passwordEncodeWithSalt = addSalt(passwordEncoder.encode(user.getPassword()));
         user.setPassword(passwordEncodeWithSalt);
         return userRepository.save(user);
     }
@@ -49,10 +50,7 @@ public class UserServiceImpl implements UserService {
     public User findById(Long id) {
         return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
     }
-    @Override
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+
     private String addSalt(String coderCred) {
         String symbols = "qwertyuiopasdfghjklzxcvbnm1234567890";
         String salt = new Random().ints(10, 0, symbols.length())

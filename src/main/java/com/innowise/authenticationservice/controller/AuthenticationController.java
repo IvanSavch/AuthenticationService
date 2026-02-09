@@ -16,6 +16,7 @@ import com.innowise.authenticationservice.service.RefreshTokenService;
 import com.innowise.authenticationservice.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,13 +31,16 @@ public class AuthenticationController {
     private final JWTRefreshTokenProvider jwtRefreshTokenProvider;
     private final RefreshTokenService refreshTokenService;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthenticationController(UserService userService, JWTAccessTokenProvider jwtAccessTokenProvider, JWTRefreshTokenProvider jwtRefreshTokenProvider, RefreshTokenService refreshTokenService, UserMapper userMapper) {
+
+    public AuthenticationController(UserService userService, JWTAccessTokenProvider jwtAccessTokenProvider, JWTRefreshTokenProvider jwtRefreshTokenProvider, RefreshTokenService refreshTokenService, UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.jwtAccessTokenProvider = jwtAccessTokenProvider;
         this.jwtRefreshTokenProvider = jwtRefreshTokenProvider;
         this.refreshTokenService = refreshTokenService;
         this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping
@@ -49,7 +53,7 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody UserCreateDto userCreateDto) {
         User byLogin = userService.findByLogin(userCreateDto.getLogin());
-        if (!userService.passwordEncoder().matches(userCreateDto.getPassword(), byLogin.getPassword().substring(10))) {
+        if (!passwordEncoder.matches(userCreateDto.getPassword(), byLogin.getPassword().substring(10))) {
             throw new InvalidCredentialsException();
         }
 
