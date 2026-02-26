@@ -43,7 +43,7 @@ public class AuthenticationController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @PostMapping
+    @PostMapping("/")
     public ResponseEntity<UserResponse> registration(@Valid @RequestBody UserCreateDto userCreateDto) {
         User save = userService.save(userCreateDto);
         UserResponse userResponse = userMapper.toUserResponse(save);
