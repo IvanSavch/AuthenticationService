@@ -43,7 +43,7 @@ public class SecurityConfiguration {
                         .authenticationEntryPoint(customAuthenticationEntryPoint)).exceptionHandling(exception -> exception
                         .accessDeniedHandler(accessDenied))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/", "/refresh", "/login","/validate").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth", "/auth/refresh", "/auth/login","/auth/validate").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
