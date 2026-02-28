@@ -23,7 +23,11 @@ public class JWTTokenFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
+        String path = request.getRequestURI();
+        if (path.startsWith("/auth/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         String token = jwtAccessTokenProvider.resolveToken(request);
         if (token != null && jwtAccessTokenProvider.validateToken(token)) {
             Authentication auth = jwtAccessTokenProvider.getAuthentication(token);

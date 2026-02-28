@@ -5,12 +5,13 @@ import com.innowise.authenticationservice.jwt.JWTAccessTokenProvider;
 import com.innowise.authenticationservice.jwt.JWTRefreshTokenProvider;
 import com.innowise.authenticationservice.exception.InvalidCredentialsException;
 import com.innowise.authenticationservice.mapper.UserMapper;
-import com.innowise.authenticationservice.model.dto.CreateTokenDto;
-import com.innowise.authenticationservice.model.dto.RefreshTokenDto;
-import com.innowise.authenticationservice.model.dto.TokenResponse;
-import com.innowise.authenticationservice.model.dto.UserCreateDto;
-import com.innowise.authenticationservice.model.dto.UserResponse;
-import com.innowise.authenticationservice.model.dto.ValidationAccessTokenRequest;
+import com.innowise.authenticationservice.model.dto.token.CreateTokenDto;
+import com.innowise.authenticationservice.model.dto.token.RefreshTokenDto;
+import com.innowise.authenticationservice.model.dto.token.TokenResponse;
+import com.innowise.authenticationservice.model.dto.user.UserCreateDto;
+import com.innowise.authenticationservice.model.dto.user.UserLoginDto;
+import com.innowise.authenticationservice.model.dto.user.UserResponse;
+import com.innowise.authenticationservice.model.dto.token.ValidationAccessTokenRequest;
 import com.innowise.authenticationservice.model.entity.User;
 import com.innowise.authenticationservice.service.RefreshTokenService;
 import com.innowise.authenticationservice.service.UserService;
@@ -43,7 +44,7 @@ public class AuthenticationController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @PostMapping("/")
+    @PostMapping("/registration")
     public ResponseEntity<UserResponse> registration(@Valid @RequestBody UserCreateDto userCreateDto) {
         User save = userService.save(userCreateDto);
         UserResponse userResponse = userMapper.toUserResponse(save);
@@ -51,9 +52,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@Valid @RequestBody UserCreateDto userCreateDto) {
-        User byLogin = userService.findByLogin(userCreateDto.getLogin());
-        if (!passwordEncoder.matches(userCreateDto.getPassword(), byLogin.getPassword().substring(10))) {
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody UserLoginDto userLoginDto) {
+        User byLogin = userService.findByLogin(userLoginDto.getLogin());
+        if (!passwordEncoder.matches(userLoginDto.getPassword(), byLogin.getPassword().substring(10))) {
             throw new InvalidCredentialsException();
         }
 
