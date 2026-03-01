@@ -3,6 +3,7 @@ package com.innowise.authenticationservice.service.impl;
 import com.innowise.authenticationservice.client.UserClient;
 import com.innowise.authenticationservice.exception.InvalidCredentialsException;
 import com.innowise.authenticationservice.exception.LoginAlreadyExistsException;
+import com.innowise.authenticationservice.exception.ServiceUnavailableException;
 import com.innowise.authenticationservice.exception.UserNotFoundException;
 import com.innowise.authenticationservice.mapper.UserMapper;
 import com.innowise.authenticationservice.model.dto.user.CreateUserServiceDto;
@@ -14,6 +15,7 @@ import com.innowise.authenticationservice.util.SaltUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -34,6 +36,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User save(UserCreateDto userCreateDto) {
         if (userRepository.findByLogin(userCreateDto.getLogin()).isPresent()) {
             throw new LoginAlreadyExistsException();
@@ -50,11 +53,11 @@ public class UserServiceImpl implements UserService {
             createUserServiceDto.setAuthId(save.getId());
             userClient.create(createUserServiceDto);
             return save;
-        } catch (Exception e) {
+        } catch (ServiceUnavailableException e) {
             if (save != null) {
                 userRepository.delete(save);
             }
-            throw new InvalidCredentialsException();
+            throw new ServiceUnavailableException("User service unavailable");
         }
     }
 
