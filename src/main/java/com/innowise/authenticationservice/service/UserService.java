@@ -7,4 +7,5 @@ public interface UserService {
     User save(UserCreateDto userCreateDto);
     User findByLogin(String login);
     User findById(Long id);
+    User updateRoleById(Long id);
 }

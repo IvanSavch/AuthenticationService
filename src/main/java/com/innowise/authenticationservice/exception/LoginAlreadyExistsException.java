@@ -1,7 +1,11 @@
 package com.innowise.authenticationservice.exception;
 
+import java.io.Serial;
+
 public class LoginAlreadyExistsException extends RuntimeException {
     private static final String DEFAULT_MESSAGE="Login already exist";
+    @Serial
+    private static final long serialVersionUID = 4054866389350828503L;
 
     public LoginAlreadyExistsException() {
         super(DEFAULT_MESSAGE);

@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateUserServiceDto {
-    private Long authId;
+    private Long id;
     private String name;
     private String surname;
     private LocalDate birthDate;

@@ -50,15 +50,27 @@ public class UserServiceImpl implements UserService {
             save = userRepository.save(user);
 
             CreateUserServiceDto createUserServiceDto = userMapper.toCreateUserServiceDto(userCreateDto);
-            createUserServiceDto.setAuthId(save.getId());
+            createUserServiceDto.setId(save.getId());
             userClient.create(createUserServiceDto);
             return save;
-        } catch (ServiceUnavailableException e) {
+        }catch (InvalidCredentialsException e){
+            if (save != null) {
+                userRepository.delete(save);
+            }
+            throw new InvalidCredentialsException();
+        }
+        catch (ServiceUnavailableException e) {
             if (save != null) {
                 userRepository.delete(save);
             }
             throw new ServiceUnavailableException("User service unavailable");
         }
+    }
+    @Override
+    public User updateRoleById(Long id){
+        User user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        user.setRole(User.Role.ROLE_ADMIN);
+        return userRepository.save(user);
     }
 
     @Override

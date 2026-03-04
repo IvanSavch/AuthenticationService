@@ -17,7 +17,10 @@ import com.innowise.authenticationservice.service.RefreshTokenService;
 import com.innowise.authenticationservice.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -83,5 +86,12 @@ public class AuthenticationController {
         Long userIdFromJWT = jwtAccessTokenProvider.getUserIdFromJWT(validationAccessTokenRequest.getToken());
         User byId = userService.findById(userIdFromJWT);
         return ResponseEntity.ok().body(userMapper.toUserResponse(byId));
+    }
+    @PatchMapping("/{id}")
+    @PreAuthorize("@authenticationServiceImpl.adminRole(authentication)")
+    public ResponseEntity<UserResponse> updateRoleById(@PathVariable Long id){
+        User user = userService.updateRoleById(id);
+        UserResponse userResponse = userMapper.toUserResponse(user);
+        return ResponseEntity.ok(userResponse);
     }
 }

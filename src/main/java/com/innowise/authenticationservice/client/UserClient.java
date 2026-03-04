@@ -1,5 +1,6 @@
 package com.innowise.authenticationservice.client;
 
+import com.innowise.authenticationservice.exception.InvalidCredentialsException;
 import com.innowise.authenticationservice.exception.ServiceUnavailableException;
 import com.innowise.authenticationservice.model.dto.user.CreateUserServiceDto;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 
@@ -30,6 +32,9 @@ public class UserClient {
     }
 
     public void createFallback(CreateUserServiceDto userServiceDto, Throwable throwable) throws ServiceUnavailableException {
+        if (throwable instanceof HttpClientErrorException.BadRequest){
+            throw  new InvalidCredentialsException();
+        }
         throw new ServiceUnavailableException();
     }
 }

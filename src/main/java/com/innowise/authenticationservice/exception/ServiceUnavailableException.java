@@ -1,8 +1,13 @@
 package com.innowise.authenticationservice.exception;
 
+import java.io.Serial;
+
 public class ServiceUnavailableException extends RuntimeException {
 
     private static final String DEFAULT_MESSAGE = "User service is unavailable";
+    @Serial
+    private static final long serialVersionUID = 3511755256461331886L;
+
     public ServiceUnavailableException() {
         super(DEFAULT_MESSAGE);
     }

@@ -1,7 +1,12 @@
 package com.innowise.authenticationservice.exception;
 
+import java.io.Serial;
+
 public class InvalidCredentialsException extends RuntimeException{
     private static final String DEFAULT_MESSAGE="Invalid login or password";
+    @Serial
+    private static final long serialVersionUID = -541436134216647999L;
+
     public InvalidCredentialsException() {
         super(DEFAULT_MESSAGE);
     }
