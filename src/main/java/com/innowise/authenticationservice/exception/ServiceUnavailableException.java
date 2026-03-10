@@ -4,7 +4,7 @@ import java.io.Serial;
 
 public class ServiceUnavailableException extends RuntimeException {
 
-    private static final String DEFAULT_MESSAGE = "User service is unavailable";
+    private static final String DEFAULT_MESSAGE = "Service is unavailable";
     @Serial
     private static final long serialVersionUID = 3511755256461331886L;
 

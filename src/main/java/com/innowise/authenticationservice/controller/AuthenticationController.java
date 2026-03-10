@@ -15,10 +15,10 @@ import com.innowise.authenticationservice.model.dto.token.ValidationAccessTokenR
 import com.innowise.authenticationservice.model.entity.User;
 import com.innowise.authenticationservice.service.RefreshTokenService;
 import com.innowise.authenticationservice.service.UserService;
+import com.innowise.authenticationservice.util.PasswordUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,16 +35,16 @@ public class AuthenticationController {
     private final JWTRefreshTokenProvider jwtRefreshTokenProvider;
     private final RefreshTokenService refreshTokenService;
     private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordUtil passwordUtil;
 
 
-    public AuthenticationController(UserService userService, JWTAccessTokenProvider jwtAccessTokenProvider, JWTRefreshTokenProvider jwtRefreshTokenProvider, RefreshTokenService refreshTokenService, UserMapper userMapper, PasswordEncoder passwordEncoder) {
+    public AuthenticationController(UserService userService, JWTAccessTokenProvider jwtAccessTokenProvider, JWTRefreshTokenProvider jwtRefreshTokenProvider, RefreshTokenService refreshTokenService, UserMapper userMapper, PasswordUtil passwordUtil) {
         this.userService = userService;
         this.jwtAccessTokenProvider = jwtAccessTokenProvider;
         this.jwtRefreshTokenProvider = jwtRefreshTokenProvider;
         this.refreshTokenService = refreshTokenService;
         this.userMapper = userMapper;
-        this.passwordEncoder = passwordEncoder;
+        this.passwordUtil = passwordUtil;
     }
 
     @PostMapping("/registration")
@@ -57,7 +57,7 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody UserLoginDto userLoginDto) {
         User byLogin = userService.findByLogin(userLoginDto.getLogin());
-        if (!passwordEncoder.matches(userLoginDto.getPassword(), byLogin.getPassword().substring(10))) {
+        if (!passwordUtil.matches(userLoginDto.getPassword(), byLogin.getPassword())) {
             throw new InvalidCredentialsException();
         }
 
