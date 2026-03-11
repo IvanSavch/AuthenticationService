@@ -1,4 +1,4 @@
-package com.innowise.authenticationservice.model.dto;
+package com.innowise.authenticationservice.model.dto.token;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ValidationAccessTokenRequest {
-    private String token;
+public class RefreshTokenDto {
+    private String refreshToken;
 }

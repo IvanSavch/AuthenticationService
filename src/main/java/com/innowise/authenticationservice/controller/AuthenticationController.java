@@ -5,18 +5,22 @@ import com.innowise.authenticationservice.jwt.JWTAccessTokenProvider;
 import com.innowise.authenticationservice.jwt.JWTRefreshTokenProvider;
 import com.innowise.authenticationservice.exception.InvalidCredentialsException;
 import com.innowise.authenticationservice.mapper.UserMapper;
-import com.innowise.authenticationservice.model.dto.CreateTokenDto;
-import com.innowise.authenticationservice.model.dto.RefreshTokenDto;
-import com.innowise.authenticationservice.model.dto.TokenResponse;
-import com.innowise.authenticationservice.model.dto.UserCreateDto;
-import com.innowise.authenticationservice.model.dto.UserResponse;
-import com.innowise.authenticationservice.model.dto.ValidationAccessTokenRequest;
+import com.innowise.authenticationservice.model.dto.token.CreateTokenDto;
+import com.innowise.authenticationservice.model.dto.token.RefreshTokenDto;
+import com.innowise.authenticationservice.model.dto.token.TokenResponse;
+import com.innowise.authenticationservice.model.dto.user.UserCreateDto;
+import com.innowise.authenticationservice.model.dto.user.UserLoginDto;
+import com.innowise.authenticationservice.model.dto.user.UserResponse;
+import com.innowise.authenticationservice.model.dto.token.ValidationAccessTokenRequest;
 import com.innowise.authenticationservice.model.entity.User;
 import com.innowise.authenticationservice.service.RefreshTokenService;
 import com.innowise.authenticationservice.service.UserService;
+import com.innowise.authenticationservice.util.PasswordUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,26 +28,26 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/auth")
 public class AuthenticationController {
     private final UserService userService;
     private final JWTAccessTokenProvider jwtAccessTokenProvider;
     private final JWTRefreshTokenProvider jwtRefreshTokenProvider;
     private final RefreshTokenService refreshTokenService;
     private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordUtil passwordUtil;
 
 
-    public AuthenticationController(UserService userService, JWTAccessTokenProvider jwtAccessTokenProvider, JWTRefreshTokenProvider jwtRefreshTokenProvider, RefreshTokenService refreshTokenService, UserMapper userMapper, PasswordEncoder passwordEncoder) {
+    public AuthenticationController(UserService userService, JWTAccessTokenProvider jwtAccessTokenProvider, JWTRefreshTokenProvider jwtRefreshTokenProvider, RefreshTokenService refreshTokenService, UserMapper userMapper, PasswordUtil passwordUtil) {
         this.userService = userService;
         this.jwtAccessTokenProvider = jwtAccessTokenProvider;
         this.jwtRefreshTokenProvider = jwtRefreshTokenProvider;
         this.refreshTokenService = refreshTokenService;
         this.userMapper = userMapper;
-        this.passwordEncoder = passwordEncoder;
+        this.passwordUtil = passwordUtil;
     }
 
-    @PostMapping
+    @PostMapping("/registration")
     public ResponseEntity<UserResponse> registration(@Valid @RequestBody UserCreateDto userCreateDto) {
         User save = userService.save(userCreateDto);
         UserResponse userResponse = userMapper.toUserResponse(save);
@@ -51,9 +55,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@Valid @RequestBody UserCreateDto userCreateDto) {
-        User byLogin = userService.findByLogin(userCreateDto.getLogin());
-        if (!passwordEncoder.matches(userCreateDto.getPassword(), byLogin.getPassword().substring(10))) {
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody UserLoginDto userLoginDto) {
+        User byLogin = userService.findByLogin(userLoginDto.getLogin());
+        if (!passwordUtil.matches(userLoginDto.getPassword(), byLogin.getPassword())) {
             throw new InvalidCredentialsException();
         }
 
@@ -82,5 +86,12 @@ public class AuthenticationController {
         Long userIdFromJWT = jwtAccessTokenProvider.getUserIdFromJWT(validationAccessTokenRequest.getToken());
         User byId = userService.findById(userIdFromJWT);
         return ResponseEntity.ok().body(userMapper.toUserResponse(byId));
+    }
+    @PatchMapping("/{id}")
+    @PreAuthorize("@authenticationServiceImpl.adminRole(authentication)")
+    public ResponseEntity<UserResponse> updateRoleById(@PathVariable Long id){
+        User user = userService.updateRoleById(id);
+        UserResponse userResponse = userMapper.toUserResponse(user);
+        return ResponseEntity.ok(userResponse);
     }
 }

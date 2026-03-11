@@ -1,4 +1,4 @@
-package com.innowise.authenticationservice.model.dto;
+package com.innowise.authenticationservice.model.dto.token;
 
 
 import jakarta.validation.constraints.NotBlank;
